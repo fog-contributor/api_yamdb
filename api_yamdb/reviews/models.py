@@ -43,7 +43,7 @@ class Category(models.Model):
     Категории (типы) произведений.
     """
     name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Slug', max_length=50)
+    slug = models.SlugField('Slug', max_length=50, unique=True)
 
     def __str__(self):
         return self.name

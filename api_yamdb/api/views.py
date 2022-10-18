@@ -1,12 +1,8 @@
-from django.shortcuts import get_object_or_404
-
 from rest_framework import mixins, viewsets
-from rest_framework import permissions
+# from rest_framework import permissions
 from rest_framework import filters
-from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Category, Genre, Title
-# from api.permission import AuthorOrReadOnly
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
@@ -14,9 +10,17 @@ from api.serializers import (
 )
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class CategoryViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -36,4 +40,3 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 #     def perform_create(self, serializer):
 #         serializer.save(author=self.request.user)
-
