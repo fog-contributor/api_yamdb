@@ -10,20 +10,24 @@ from api.serializers import (
 )
 
 
-class CategoryViewSet(
+class CreateListDel(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    """Кастомный класс для создания и удаления."""
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateListDel):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(CreateListDel):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
