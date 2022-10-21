@@ -1,8 +1,58 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-from reviews.models import Comment, Review, Title
 
+from reviews.models import Category, Comment, Genre, Title, Review
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Category
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(source='author.username')
+    review_id = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'review', 'text', 'author', 'pub_date',)
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        model = Title
+
+
+class TitlePostPatchSerializer(serializers.ModelSerializer):
+    """
+    Дополнительный сериализатор для post и patch запросов модели Title.
+    """
+    category = serializers.SlugRelatedField(
+        read_only=False,
+        slug_field='slug',
+        queryset=Category.objects.all(),
+    )
+    genre = serializers.SlugRelatedField(
+        many=True,
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+    )
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        model = Title
+        
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(source='author.username')
@@ -22,12 +72,3 @@ class ReviewSerializer(serializers.ModelSerializer):
         if review_qs.exists():
             raise ValidationError('Можно оставить только один отзыв.')
         return data
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(source='author.username')
-    review_id = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ('id', 'review', 'text', 'author', 'pub_date',)
