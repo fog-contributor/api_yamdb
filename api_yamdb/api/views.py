@@ -1,12 +1,13 @@
 from rest_framework import mixins, viewsets
-# from rest_framework import permissions
 from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Category, Genre, Title
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer
+    TitleSerializer,
+    TitlePostPatchSerializer
 )
 
 
@@ -16,7 +17,7 @@ class CreateListDel(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    """Кастомный класс для создания и удаления."""
+    """Кастомный класс для создания и удаления категорий и жанров."""
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -35,12 +36,10 @@ class GenreViewSet(CreateListDel):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
 
-# class PostViewSet(viewsets.ModelViewSet):
-#     queryset = Post.objects.all()
-#     serializer_class = PostSerializer
-#     pagination_class = LimitOffsetPagination
-#     permission_classes = (AuthorOrReadOnly,)
-
-#     def perform_create(self, serializer):
-#         serializer.save(author=self.request.user)
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'partial_update':
+            return TitlePostPatchSerializer
+        return TitleSerializer

@@ -1,41 +1,41 @@
-from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth.models import AbstractUser
 # from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
-ROLE = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор')
-)
-SCORE_CHOICES = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+# ROLE = (
+#     ('user', 'Пользователь'),
+#     ('moderator', 'Модератор'),
+#     ('admin', 'Администратор')
+# )
+# SCORE_CHOICES = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
 
-class User(AbstractUser):
-    """
-    Кастомная модель user c уникальным username и email.
-    """
-    email = models.EmailField(
-        max_length=254,
-        unique=True,
-        error_messages={
-            'unique': ("A user with that email already exists."),
-        },
-    )
-    last_name = models.CharField(max_length=150, blank=True)
-    bio = models.TextField(
-        'Биография',
-        blank=True,
-    )
-    role = models.CharField(
-        max_length=10,
-        choices=ROLE,
-        default='user',
-        help_text=(
-            'Администратор, модератор или пользователь. По умолчанию user.'
-        ),
-        blank=True
-    )
+# class User(AbstractUser):
+#     """
+#     Кастомная модель user c уникальным username и email.
+#     """
+#     email = models.EmailField(
+#         max_length=254,
+#         unique=True,
+#         error_messages={
+#             'unique': ("A user with that email already exists."),
+#         },
+#     )
+#     last_name = models.CharField(max_length=150, blank=True)
+#     bio = models.TextField(
+#         'Биография',
+#         blank=True,
+#     )
+#     role = models.CharField(
+#         max_length=10,
+#         choices=ROLE,
+#         default='user',
+#         help_text=(
+#             'Администратор, модератор или пользователь. По умолчанию user.'
+#         ),
+#         blank=True
+#     )
 
 
 class Category(models.Model):
@@ -47,6 +47,10 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 # class Comment(models.Model):
 #     """"""
@@ -79,6 +83,10 @@ class Genre(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
 # class Review(models.Model):
 #     """
 #     Добавить новый отзыв. Пользователь может оставить только один отзыв.
@@ -102,14 +110,11 @@ class Title(models.Model):
     Произведения, к которым пишут отзывы (определённый фильм, книга или песенка).
     """
     name = models.CharField('Название', max_length=128)
-    year = models.DateTimeField('Год выпуска')
-    genre = models.ForeignKey(
-        'Genre',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='titles',
-        verbose_name='Slug жанра'
-
+    year = models.PositiveIntegerField('Год выпуска')
+    genre = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        through_fields=('title', 'genre')
     )
     description = models.TextField('Описание', blank=True)
     category = models.ForeignKey(
@@ -119,3 +124,29 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Slug категории'
     )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
+
+class GenreTitle(models.Model):
+    '''Вспомогательная модель для связи m2m.'''
+    title = models.ForeignKey(
+        'Title',
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    genre = models.ForeignKey(
+        'Genre',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='genry_titles',
+        verbose_name='Жанр'
+    )
+
+    def __str__(self):
+        return f'{self.genre} {self.title}'
