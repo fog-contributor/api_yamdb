@@ -1,5 +1,7 @@
 from django.db import models
 
+from users.models import User
+
 
 class Category(models.Model):
     """
@@ -14,11 +16,11 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        
-        
+
+
 class Comment(models.Model):
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments'
+        'Review', on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField
     author = models.ForeignKey(
@@ -31,7 +33,6 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ("-pub_date",)
-
 
 
 class Genre(models.Model):
@@ -48,11 +49,12 @@ class Genre(models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
+
 class Review(models.Model):
     SCORE_CHOICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews'
+        'Title', on_delete=models.CASCADE, related_name='reviews'
     )
     text = models.TextField()
     author = models.ForeignKey(
