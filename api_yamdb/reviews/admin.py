@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Genre, Title
+from .models import Category, Genre, Title, User
 
 
 class TitleInlineAdmin(admin.TabularInline):
@@ -18,6 +18,7 @@ class TitleAdmin(admin.ModelAdmin):
     inlines = [TitleInlineAdmin]
 
 
+admin.site.register(User)
 admin.site.register(Category)
 admin.site.register(Genre)
 admin.site.register(Title, TitleAdmin)
