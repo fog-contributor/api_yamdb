@@ -1,31 +1,42 @@
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
-
-from rest_framework_simplejwt.tokens import RefreshToken
-
-from reviews.models import User
+from rest_framework import mixins, viewsets
+from rest_framework import filters
 
 import pyotp
 
-from .serializers import UserSerializer, SignUpSerializer, LoginUserSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from reviews.models import User, Category, Comment, Genre, Title, Review
+from .permissions import AuthorOrReadOnly
+from .serializers import (
+    UserSerializer,
+    SignUpSerializer,
+    LoginUserSerializer,
+    CategorySerializer, 
+    CommentSerializer,
+    GenreSerializer,
+    TitleSerializer,
+    TitlePostPatchSerializer,
+    ReviewSerializer
+)
 
 
-class UserViewSet(ModelViewSet):
-
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated,)
     pagination_class = PageNumberPagination
-    filter_backends = (SearchFilter, )
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('username',)
 
 
@@ -112,3 +123,49 @@ class CurrentUserView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateListDel(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    """Кастомный класс для создания и удаления категорий и жанров."""
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+
+class CategoryViewSet(CreateListDel):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    
+    
+class CommentViewset(viewsets.ModelViewSet):
+    queryset = Comment.objects.select_related()
+    serializer_class = CommentSerializer
+    permission_classes = (AuthorOrReadOnly,)
+
+
+class GenreViewSet(CreateListDel):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'partial_update':
+            return TitlePostPatchSerializer
+        return TitleSerializer
+        
+
+class ReviewViewset(viewsets.ModelViewSet):
+    queryset = Review.objects.select_related()
+    serializer_class = ReviewSerializer
+    permission_classes = (AuthorOrReadOnly,)
