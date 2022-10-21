@@ -2,20 +2,23 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class Role(models.Model):
-
-    name = models.CharField('Имя роли', max_length=50)
-    description = models.TextField('Описание ролевой модели')
-
-    def __str__(self):
-        return self.name
+ROLE = (
+    ('user', 'Пользователь'),
+    ('moderator', 'Модератор'),
+    ('admin', 'Администратор')
+)
 
 
 class User(AbstractUser):
 
-    role = models.ForeignKey(Role,
-                             on_delete=models.CASCADE,
-                             related_name='role',
-                             blank=True, null=True)
-
+    email = models.EmailField(unique=True)
     bio = models.TextField('Биография', blank=True, null=True)
+    otp = models.CharField(null=True, blank=True, max_length=128)
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE,
+        default='user',
+        help_text=(
+            'Администратор, модератор или пользователь. По умолчанию user.'
+        ),
+        blank=True)
