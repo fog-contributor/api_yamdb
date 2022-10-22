@@ -30,6 +30,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
         model = Category
 
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(source='author.username')
     review_id = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -72,7 +73,7 @@ class TitlePostPatchSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Title
-        
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(source='author.username')
@@ -92,4 +93,3 @@ class ReviewSerializer(serializers.ModelSerializer):
         if review_qs.exists():
             raise ValidationError('Можно оставить только один отзыв.')
         return data
-
