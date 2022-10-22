@@ -21,7 +21,7 @@ from .serializers import (
     UserSerializer,
     SignUpSerializer,
     LoginUserSerializer,
-    CategorySerializer, 
+    CategorySerializer,
     CommentSerializer,
     GenreSerializer,
     TitleSerializer,
@@ -59,8 +59,10 @@ class SignUpView(APIView):
             self.send_mail(otp, email)
         else:
             try:  # пользователь - существует
-                if (serializer.errors.get('username')[0].code == 'unique' and
-                        serializer.errors.get('email')[0].code == 'unique'):
+                if (
+                    serializer.errors.get('username')[0].code == 'unique'
+                    and serializer.errors.get('email')[0].code == 'unique'
+                ):
                     username = serializer.data['username']
                     email = serializer.data['email']
                     _existence_user = User.objects.get(username=username,
@@ -140,8 +142,8 @@ class CreateListDel(
 class CategoryViewSet(CreateListDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    
-    
+
+
 class CommentViewset(viewsets.ModelViewSet):
     queryset = Comment.objects.select_related()
     serializer_class = CommentSerializer
@@ -163,7 +165,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action == 'create' or self.action == 'partial_update':
             return TitlePostPatchSerializer
         return TitleSerializer
-        
+
 
 class ReviewViewset(viewsets.ModelViewSet):
     queryset = Review.objects.select_related()

@@ -71,7 +71,10 @@ class Genre(models.Model):
 
 
 class Review(models.Model):
-    SCORE_CHOICES = ((1,1), (2,2), (3,3), (4,4), (5,5), (6,6), (7,7), (8,8), (9,9), (10,10))
+    SCORE_CHOICES = (
+        (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
+        (6, 6), (7, 7), (8, 8), (9, 9), (10, 10)
+    )
 
     title = models.ForeignKey(
         'Title', on_delete=models.CASCADE, related_name='reviews'
@@ -97,7 +100,8 @@ class Review(models.Model):
 
 class Title(models.Model):
     """
-    Произведения, к которым пишут отзывы (определённый фильм, книга или песенка).
+    Произведения, к которым пишут отзывы (определённый фильм, книга или
+    песенка).
     """
     name = models.CharField('Название', max_length=128)
     year = models.PositiveIntegerField('Год выпуска')
@@ -134,7 +138,7 @@ class GenreTitle(models.Model):
         'Genre',
         on_delete=models.SET_NULL,
         null=True,
-        related_name='genry_titles',
+        related_name='genre_titles',
         verbose_name='Жанр'
     )
 
