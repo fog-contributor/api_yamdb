@@ -152,6 +152,13 @@ class CategoryViewSet(CreateListDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get_permissions(self):
+        if self.action == 'list':
+            
+            return (ReadOnly(), )
+        
+        return super().get_permissions()
+
 # class CommentViewSet(viewsets.ModelViewSet):
 #     queryset = Comment.objects.select_related()
 #     serializer_class = CommentSerializer
@@ -171,7 +178,12 @@ class GenreViewSet(CreateListDel):
 
     def get_permissions(self):
         if self.action == 'create' or self.action == 'destroy':
+            
             return (IsAdminOrSuperUser(),)
+        if self.action == 'list':
+            
+            return (ReadOnly(), )
+        
         return super().get_permissions()
 
 
@@ -193,16 +205,22 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create' or self.action == 'destroy' or self.action == 'partial_update':
+
             return (IsAdminOrSuperUser(),)
+        
+        if self.action == 'list' or self.action == 'retrieve':
+            
+            return (ReadOnly(), )
+        
         return super().get_permissions()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
 
-    # permission_classes = (IsModeratorOrIsOwner,)
+    permission_classes = (IsModeratorOrIsOwner,)
 
-    permission_classes = (AuthorOrReadOnly,)
+    #permission_classes = (AuthorOrReadOnly,)
 
     def get_serializer_context(self):
         context = super(ReviewViewSet, self).get_serializer_context()
@@ -220,11 +238,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, pk=title_id)
         serializer.save(author=self.request.user, title=title)
         return title.reviews.all()
+    
+    
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AuthorOrReadOnly,)
+    #permission_classes = (AuthorOrReadOnly,)
+    permission_classes = (IsModeratorOrIsOwner,)
 
     def get_queryset(self):
         review_id = self.kwargs.get("review_id")
