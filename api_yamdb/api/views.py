@@ -152,10 +152,10 @@ class CategoryViewSet(CreateListDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-class CommentViewset(viewsets.ModelViewSet):
-    queryset = Comment.objects.select_related()
-    serializer_class = CommentSerializer
-    permission_classes = (IsModeratorOrIsOwner,)
+# class CommentViewSet(viewsets.ModelViewSet):
+#     queryset = Comment.objects.select_related()
+#     serializer_class = CommentSerializer
+#     permission_classes = (IsModeratorOrIsOwner,)
 
     # Закоментил на время. После тестов если все ок, то можно удалить 
 #     def get_permissions(self):
@@ -200,39 +200,39 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
 
-    permission_classes = (IsModeratorOrIsOwner,)
+    # permission_classes = (IsModeratorOrIsOwner,)
 
-#     permission_classes = (AuthorOrReadOnly,)
+    permission_classes = (AuthorOrReadOnly,)
 
-#     def get_serializer_context(self):
-#         context = super(ReviewViewSet, self).get_serializer_context()
-#         title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
-#         context.update({"title": title})
-#         return context
+    def get_serializer_context(self):
+        context = super(ReviewViewSet, self).get_serializer_context()
+        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
+        context.update({"title": title})
+        return context
 
-#     def get_queryset(self):
-#         title_id = self.kwargs.get("title_id")
-#         title = get_object_or_404(Title, pk=title_id)
-#         return title.reviews.all()
+    def get_queryset(self):
+        title_id = self.kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
+        return title.reviews.all()
 
-#     def perform_create(self, serializer):
-#         title_id = self.kwargs.get("title_id")
-#         title = get_object_or_404(Title, pk=title_id)
-#         serializer.save(author=self.request.user, title=title)
-#         return title.reviews.all()
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
+        serializer.save(author=self.request.user, title=title)
+        return title.reviews.all()
 
 
-# class CommentViewSet(viewsets.ModelViewSet):
-#     serializer_class = CommentSerializer
-#     permission_classes = (AuthorOrReadOnly,)
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (AuthorOrReadOnly,)
 
-#     def get_queryset(self):
-#         review_id = self.kwargs.get("review_id")
-#         review = get_object_or_404(Review, pk=review_id)
-#         return review.comments.all()
+    def get_queryset(self):
+        review_id = self.kwargs.get("review_id")
+        review = get_object_or_404(Review, pk=review_id)
+        return review.comments.all()
 
-#     def perform_create(self, serializer):
-#         review_id = self.kwargs.get("review_id")
-#         review = get_object_or_404(Review, pk=review_id)
-#         serializer.save(author=self.request.user, review=review)
+    def perform_create(self, serializer):
+        review_id = self.kwargs.get("review_id")
+        review = get_object_or_404(Review, pk=review_id)
+        serializer.save(author=self.request.user, review=review)
 
