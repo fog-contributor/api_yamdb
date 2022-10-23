@@ -100,6 +100,8 @@ class LoginUserView(APIView):
         user = get_object_or_404(User, username=data['username'])
         if user.otp == data['confirmation_code']:
             refresh = RefreshToken.for_user(user)
+            user.otp = None  # Удаляем ОТР после выдачи токена
+            user.save()
 
             return Response({'token': str(refresh.access_token), },
                             status=status.HTTP_200_OK)
