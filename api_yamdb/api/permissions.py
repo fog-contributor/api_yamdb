@@ -12,6 +12,11 @@ class IsAdminOrSuperUser(BasePermission):
                 return (request.user.is_authenticated and request.user.role == 'admin'
                 or request.user.is_superuser)
 
+# class IsAdminOrSuperUser(BasePermission):
+#     def has_permission(self, request, view):
+#         if request.user.is_authenticated:
+#             return request.user.role == 'admin' or request.user.is_superuser
+
 
 class IsModeratorOrIsOwner(BasePermission):
     def has_permission(self, request, view):
