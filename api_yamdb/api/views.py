@@ -13,11 +13,14 @@ from rest_framework import mixins, viewsets
 from rest_framework import filters
 
 import pyotp
+from api.filters import TitleFilter
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
+
 from reviews.models import User, Category, Genre, Title, Review
-from .permissions import AuthorOrReadOnly
+from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, ReadOnly
+
 from .serializers import (
     UserSerializer,
     SignUpSerializer,
@@ -146,10 +149,20 @@ class CategoryViewSet(CreateListDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdminOrSuperUser(),)
+        return super().get_permissions()
+
 
 class GenreViewSet(CreateListDel):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdminOrSuperUser(),)
+        return super().get_permissions()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -158,12 +171,17 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'partial_update':
             return TitlePostPatchSerializer
         return TitleSerializer
+
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy' or self.action == 'partial_update':
+            return (IsAdminOrSuperUser(),)
+        return super().get_permissions()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
