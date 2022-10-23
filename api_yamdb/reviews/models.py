@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 
 
@@ -38,21 +39,6 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
 
-class Comment(models.Model):
-    review = models.ForeignKey(
-        'Review', on_delete=models.CASCADE, related_name='comments'
-    )
-    text = models.TextField()
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
-    )
-    pub_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self) -> str:
-        return self.text
-
-    class Meta:
-        ordering = ("-pub_date",)
 
 
 class Genre(models.Model):
@@ -68,34 +54,6 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-
-class Review(models.Model):
-    SCORE_CHOICES = (
-        (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
-        (6, 6), (7, 7), (8, 8), (9, 9), (10, 10)
-    )
-
-    title = models.ForeignKey(
-        'Title', on_delete=models.CASCADE, related_name='reviews'
-    )
-    text = models.TextField()
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews'
-    )
-    score = models.IntegerField(choices=SCORE_CHOICES)
-    pub_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self) -> str:
-        return self.text
-
-    class Meta:
-        ordering = ("-pub_date",)
-        constraints = [
-            models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
-            ),
-        ]
 
 
 class Title(models.Model):
@@ -144,3 +102,44 @@ class GenreTitle(models.Model):
 
     def __str__(self):
         return f'{self.genre} {self.title}'
+
+class Review(models.Model):
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name='reviews'
+    )
+    text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.text
+
+    class Meta:
+        ordering = ("-pub_date",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["title", "author"], name="unique_review"
+            ),
+        ]
+
+
+class Comment(models.Model):
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name='comments'
+    )
+    text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.text
+
+    class Meta:
+        ordering = ("-pub_date",)
