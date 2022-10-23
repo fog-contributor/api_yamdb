@@ -17,9 +17,8 @@ from api.filters import TitleFilter
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
-from reviews.models import User, Category, Genre, Title, Review
-from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, ReadOnly
+from reviews.models import User, Category, Comment, Genre, Title, Review
+from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, IsModeratorOrIsOwner, ReadOnly
 
 from .serializers import (
     UserSerializer,
@@ -30,7 +29,8 @@ from .serializers import (
     GenreSerializer,
     TitleSerializer,
     TitlePostPatchSerializer,
-    ReviewSerializer
+    ReviewSerializer,
+    CurrentUserSerializer
 )
 
 
@@ -38,7 +38,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminOrSuperUser,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username',)
@@ -96,6 +96,7 @@ class SignUpView(APIView):
 
 
 class LoginUserView(APIView):
+    permission_classes = (AllowAny, )
 
     def post(self, request):
         serializer = LoginUserSerializer(data=request.data)
@@ -115,16 +116,17 @@ class LoginUserView(APIView):
 
 
 class CurrentUserView(APIView):
+    permission_classes = (AuthorOrReadOnly,)
 
     def get(self, request):
         me = get_object_or_404(User, username=request.user)
-        serializer = UserSerializer(me)
+        serializer = CurrentUserSerializer(me)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         me = get_object_or_404(User, username=request.user)
-        serializer = UserSerializer(me, data=request.data)
+        serializer = CurrentUserSerializer(me, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
 
@@ -146,16 +148,24 @@ class CreateListDel(
 
 
 class CategoryViewSet(CreateListDel):
+    permission_classes = (IsAdminOrSuperUser,)
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get_permissions(self):
-        if self.action == 'create' or self.action == 'destroy':
-            return (IsAdminOrSuperUser(),)
-        return super().get_permissions()
+class CommentViewset(viewsets.ModelViewSet):
+    queryset = Comment.objects.select_related()
+    serializer_class = CommentSerializer
+    permission_classes = (IsModeratorOrIsOwner,)
+
+    # Закоментил на время. После тестов если все ок, то можно удалить 
+#     def get_permissions(self):
+#         if self.action == 'create' or self.action == 'destroy':
+#             return (IsAdminOrSuperUser(),)
+#         return super().get_permissions()
 
 
 class GenreViewSet(CreateListDel):
+    permission_classes = (IsAdminOrSuperUser,)
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
@@ -166,9 +176,12 @@ class GenreViewSet(CreateListDel):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = (
-        Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
-    )
+    permission_classes = (IsAdminOrSuperUser,)
+    queryset = Title.objects.all()
+#     queryset = (
+#         Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
+#     )
+
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -186,36 +199,40 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorOrReadOnly,)
 
-    def get_serializer_context(self):
-        context = super(ReviewViewSet, self).get_serializer_context()
-        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
-        context.update({"title": title})
-        return context
+    permission_classes = (IsModeratorOrIsOwner,)
 
-    def get_queryset(self):
-        title_id = self.kwargs.get("title_id")
-        title = get_object_or_404(Title, pk=title_id)
-        return title.reviews.all()
+#     permission_classes = (AuthorOrReadOnly,)
 
-    def perform_create(self, serializer):
-        title_id = self.kwargs.get("title_id")
-        title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
-        return title.reviews.all()
+#     def get_serializer_context(self):
+#         context = super(ReviewViewSet, self).get_serializer_context()
+#         title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
+#         context.update({"title": title})
+#         return context
+
+#     def get_queryset(self):
+#         title_id = self.kwargs.get("title_id")
+#         title = get_object_or_404(Title, pk=title_id)
+#         return title.reviews.all()
+
+#     def perform_create(self, serializer):
+#         title_id = self.kwargs.get("title_id")
+#         title = get_object_or_404(Title, pk=title_id)
+#         serializer.save(author=self.request.user, title=title)
+#         return title.reviews.all()
 
 
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = (AuthorOrReadOnly,)
+# class CommentViewSet(viewsets.ModelViewSet):
+#     serializer_class = CommentSerializer
+#     permission_classes = (AuthorOrReadOnly,)
 
-    def get_queryset(self):
-        review_id = self.kwargs.get("review_id")
-        review = get_object_or_404(Review, pk=review_id)
-        return review.comments.all()
+#     def get_queryset(self):
+#         review_id = self.kwargs.get("review_id")
+#         review = get_object_or_404(Review, pk=review_id)
+#         return review.comments.all()
 
-    def perform_create(self, serializer):
-        review_id = self.kwargs.get("review_id")
-        review = get_object_or_404(Review, pk=review_id)
-        serializer.save(author=self.request.user, review=review)
+#     def perform_create(self, serializer):
+#         review_id = self.kwargs.get("review_id")
+#         review = get_object_or_404(Review, pk=review_id)
+#         serializer.save(author=self.request.user, review=review)
+
