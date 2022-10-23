@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
+from django.db.models import Avg
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -15,7 +16,7 @@ import pyotp
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import User, Category, Comment, Genre, Title, Review
+from reviews.models import User, Category, Genre, Title, Review
 from .permissions import AuthorOrReadOnly
 from .serializers import (
     UserSerializer,
@@ -146,19 +147,15 @@ class CategoryViewSet(CreateListDel):
     serializer_class = CategorySerializer
 
 
-class CommentViewset(viewsets.ModelViewSet):
-    queryset = Comment.objects.select_related()
-    serializer_class = CommentSerializer
-    permission_classes = (AuthorOrReadOnly,)
-
-
 class GenreViewSet(CreateListDel):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = (
+        Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
+    )
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
@@ -169,7 +166,38 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class ReviewViewset(viewsets.ModelViewSet):
-    queryset = Review.objects.select_related()
+class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (AuthorOrReadOnly,)
+
+    def get_serializer_context(self):
+        context = super(ReviewViewSet, self).get_serializer_context()
+        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
+        context.update({"title": title})
+        return context
+
+    def get_queryset(self):
+        title_id = self.kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
+        serializer.save(author=self.request.user, title=title)
+        return title.reviews.all()
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (AuthorOrReadOnly,)
+
+    def get_queryset(self):
+        review_id = self.kwargs.get("review_id")
+        review = get_object_or_404(Review, pk=review_id)
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review_id = self.kwargs.get("review_id")
+        review = get_object_or_404(Review, pk=review_id)
+        serializer.save(author=self.request.user, review=review)

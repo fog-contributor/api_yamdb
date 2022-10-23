@@ -31,15 +31,6 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(source='author.username')
-    review_id = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ('id', 'review', 'text', 'author', 'pub_date',)
-
-
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
@@ -49,9 +40,12 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
+    rating = serializers.IntegerField(
+        source='review__score__avg', read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category', 'rating')
         model = Title
 
 
@@ -76,20 +70,38 @@ class TitlePostPatchSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(source='author.username')
-    title = serializers.PrimaryKeyRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+    title = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
 
     class Meta:
         model = Review
         fields = ('id', 'title', 'text', 'author', 'score', 'pub_date',)
 
     def validate(self, data):
-        if self.context['request'].method == 'PATCH':
-            return data
-        title = get_object_or_404(
-            Title, pk=self.context['view'].kwargs['title_id']
-        )
-        review_qs = title.review.filter(author=self.context['request'].user)
-        if review_qs.exists():
-            raise ValidationError('Можно оставить только один отзыв.')
+        request = self.context["request"]
+        title_id = self.context["view"].kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
+        if request.method == "POST":
+            if Review.objects.filter(
+                title=title, author=request.user
+            ).exists():
+                raise ValidationError("Only one review is allowed")
         return data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field="username"
+    )
+    review = serializers.SlugRelatedField(slug_field="text", read_only=True)
+
+    class Meta:
+        fields = ("id", "author", "review", "text", "pub_date")
+        model = Comment
