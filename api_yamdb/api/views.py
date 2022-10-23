@@ -16,7 +16,7 @@ import pyotp
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import User, Category, Comment, Genre, Title, Review
-from .permissions import AuthorOrReadOnly
+from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, IsModeratorOrIsOwner
 from .serializers import (
     UserSerializer,
     SignUpSerializer,
@@ -34,7 +34,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminOrSuperUser,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username',)
@@ -92,6 +92,7 @@ class SignUpView(APIView):
 
 
 class LoginUserView(APIView):
+    permission_classes = (AllowAny, )
 
     def post(self, request):
         serializer = LoginUserSerializer(data=request.data)
@@ -111,6 +112,7 @@ class LoginUserView(APIView):
 
 
 class CurrentUserView(APIView):
+    permission_classes = (AuthorOrReadOnly,)
 
     def get(self, request):
         me = get_object_or_404(User, username=request.user)
@@ -142,6 +144,7 @@ class CreateListDel(
 
 
 class CategoryViewSet(CreateListDel):
+    permission_classes = (IsAdminOrSuperUser,)
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
@@ -149,15 +152,17 @@ class CategoryViewSet(CreateListDel):
 class CommentViewset(viewsets.ModelViewSet):
     queryset = Comment.objects.select_related()
     serializer_class = CommentSerializer
-    permission_classes = (AuthorOrReadOnly,)
+    permission_classes = (IsModeratorOrIsOwner,)
 
 
 class GenreViewSet(CreateListDel):
+    permission_classes = (IsAdminOrSuperUser,)
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAdminOrSuperUser,)
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -172,4 +177,4 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewset(viewsets.ModelViewSet):
     queryset = Review.objects.select_related()
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorOrReadOnly,)
+    permission_classes = (IsModeratorOrIsOwner,)
