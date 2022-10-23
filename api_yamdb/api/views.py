@@ -16,7 +16,7 @@ import pyotp
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import User, Category, Comment, Genre, Title, Review
-from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, IsModeratorOrIsOwner
+from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, IsModeratorOrIsOwner, ReadOnly
 from .serializers import (
     UserSerializer,
     SignUpSerializer,
@@ -26,7 +26,8 @@ from .serializers import (
     GenreSerializer,
     TitleSerializer,
     TitlePostPatchSerializer,
-    ReviewSerializer
+    ReviewSerializer,
+    CurrentUserSerializer
 )
 
 
@@ -116,13 +117,13 @@ class CurrentUserView(APIView):
 
     def get(self, request):
         me = get_object_or_404(User, username=request.user)
-        serializer = UserSerializer(me)
+        serializer = CurrentUserSerializer(me)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         me = get_object_or_404(User, username=request.user)
-        serializer = UserSerializer(me, data=request.data)
+        serializer = CurrentUserSerializer(me, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
 

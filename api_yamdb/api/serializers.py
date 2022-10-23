@@ -13,6 +13,14 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio', 'role')
         model = User
 
+class CurrentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('username', 'email',
+                  'first_name', 'last_name',
+                  'bio', 'role')
+        read_only_fields = ('role',)
+        model = User
+
 
 class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
