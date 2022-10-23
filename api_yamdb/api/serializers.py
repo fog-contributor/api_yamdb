@@ -81,7 +81,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'title', 'text', 'author', 'score' 'pub_date',)
+        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date',)
 
     def validate(self, data):
         if self.context['request'].method == 'PATCH':
