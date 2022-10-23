@@ -12,11 +12,12 @@ from rest_framework import mixins, viewsets
 from rest_framework import filters
 
 import pyotp
+from api.filters import TitleFilter
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import User, Category, Comment, Genre, Title, Review
-from .permissions import AuthorOrReadOnly
+from .permissions import AuthorOrReadOnly, IsAdminOrSuperUser, ReadOnly
 from .serializers import (
     UserSerializer,
     SignUpSerializer,
@@ -143,6 +144,11 @@ class CategoryViewSet(CreateListDel):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdminOrSuperUser(),)
+        return super().get_permissions()
+
 
 class CommentViewset(viewsets.ModelViewSet):
     queryset = Comment.objects.select_related()
@@ -154,20 +160,38 @@ class GenreViewSet(CreateListDel):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdminOrSuperUser(),)
+        return super().get_permissions()
+
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'partial_update':
             return TitlePostPatchSerializer
         return TitleSerializer
 
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy' or self.action == 'partial_update':
+            return (IsAdminOrSuperUser(),)
+        return super().get_permissions()
+
 
 class ReviewViewset(viewsets.ModelViewSet):
     queryset = Review.objects.select_related()
     serializer_class = ReviewSerializer
     permission_classes = (AuthorOrReadOnly,)
+
+    # def get_permissions(self):
+    #     # Если в GET-запросе требуется получить информацию об объекте
+    #     if self.action == 'retrieve':
+    #         # Вернем обновленный перечень используемых пермишенов
+    #         return (ReadOnly(),)
+    #     # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
+    #     return super().get_permissions()

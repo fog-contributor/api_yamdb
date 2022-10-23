@@ -3,16 +3,6 @@ from django.core import management
 
 import csv
 
-# from reviews.management.commands import (
-#     add_category,
-#     add_comments,
-#     add_genre,
-#     add_genre_title,
-#     add_review,
-#     add_titles,
-#     add_users
-# )
-
 
 class Command(BaseCommand):
     help = 'Добавляет csv файлов в БД'
