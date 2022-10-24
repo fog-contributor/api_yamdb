@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.core import management
 
-import csv
-
 
 class Command(BaseCommand):
     help = 'Добавляет csv файлов в БД'
