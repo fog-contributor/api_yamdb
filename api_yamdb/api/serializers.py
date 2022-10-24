@@ -22,7 +22,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('role',)
         model = User
 
-        
+
 class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'email')
@@ -49,8 +49,10 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField(
-        source='review__score__avg', read_only=True)
+    rating = serializers.SerializerMethodField()
+
+    def get_rating(self, obj):
+        return obj.average_rating
 
     class Meta:
         fields = (
@@ -59,9 +61,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitlePostPatchSerializer(serializers.ModelSerializer):
-    """
-    Дополнительный сериализатор для post и patch запросов модели Title.
-    """
     category = serializers.SlugRelatedField(
         read_only=False,
         slug_field='slug',

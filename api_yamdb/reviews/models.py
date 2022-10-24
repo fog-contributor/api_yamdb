@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Avg
 
 
 ROLE = (
@@ -11,6 +12,9 @@ ROLE = (
 
 
 class User(AbstractUser):
+    """
+    Расширенная пользовательская модель.
+    """
     email = models.EmailField(unique=True)
     bio = models.TextField('Биография', blank=True, null=True)
     otp = models.CharField(null=True, blank=True, max_length=128)
@@ -37,8 +41,6 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-
-
 
 
 class Genre(models.Model):
@@ -80,13 +82,19 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def average_rating(self):
+        if hasattr(self, '_average_rating'):
+            return self._average_rating
+        return self.reviews.aggregate(Avg('score'))
+
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
 
 class GenreTitle(models.Model):
-    '''Вспомогательная модель для связи m2m.'''
+    """Вспомогательная модель для связи m2m."""
     title = models.ForeignKey(
         'Title',
         on_delete=models.SET_NULL,
@@ -103,7 +111,9 @@ class GenreTitle(models.Model):
     def __str__(self):
         return f'{self.genre} {self.title}'
 
+
 class Review(models.Model):
+    """Обзоры произведений."""
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
@@ -116,7 +126,7 @@ class Review(models.Model):
     )
     pub_date = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.text
 
     class Meta:
@@ -129,6 +139,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Комментарии к обзорам."""
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments'
     )
@@ -138,7 +149,7 @@ class Comment(models.Model):
     )
     pub_date = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.text
 
     class Meta:
