@@ -62,7 +62,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class TitlePostPatchSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
-        read_only=False,
         slug_field='slug',
         queryset=Category.objects.all(),
     )
