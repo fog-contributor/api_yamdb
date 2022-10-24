@@ -130,10 +130,10 @@ class Review(models.Model):
         return self.text
 
     class Meta:
-        ordering = ("-pub_date",)
+        ordering = ('-pub_date',)
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
+                fields=['title', 'author'], name='unique_review'
             ),
         ]
 
@@ -153,4 +153,4 @@ class Comment(models.Model):
         return self.text
 
     class Meta:
-        ordering = ("-pub_date",)
+        ordering = ('-pub_date',)
