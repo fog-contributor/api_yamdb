@@ -50,10 +50,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.SerializerMethodField()
-
-    def get_rating(self, obj):
-        return obj.average_rating
+    rating = serializers.ReadOnlyField(source='average_rating')
 
     class Meta:
         fields = (
