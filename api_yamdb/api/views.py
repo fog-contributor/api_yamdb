@@ -7,6 +7,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework import status
 from rest_framework import mixins, viewsets
 from rest_framework import filters
@@ -17,8 +20,8 @@ import pyotp
 
 from api.filters import TitleFilter
 from reviews.models import User, Category, Genre, Title, Review
-from .permissions import (AuthorOrReadOnly, IsAdminOrSuperUser,
-                          IsModeratorOrIsOwner, ReadOnly)
+from .permissions import (IsAdminOrSuperUser,
+                          IsModeratorOrIsOwner)
 from .serializers import (
     UserSerializer,
     SignUpSerializer,
@@ -41,6 +44,25 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username',)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=(IsAuthenticated,))
+    def me(self, request):
+        me = get_object_or_404(User, username=request.user)
+        serializer = UserSerializer(me)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @me.mapping.patch
+    def patch_me(self, request):
+        me = get_object_or_404(User, username=request.user)
+        serializer = CurrentUserSerializer(me, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SignUpView(APIView):
@@ -112,26 +134,6 @@ class LoginUserView(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class CurrentUserView(APIView):
-    permission_classes = (AuthorOrReadOnly,)
-
-    def get(self, request):
-        me = get_object_or_404(User, username=request.user)
-        serializer = CurrentUserSerializer(me)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        me = get_object_or_404(User, username=request.user)
-        serializer = CurrentUserSerializer(me, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class CreateListDel(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -151,7 +153,7 @@ class CategoryViewSet(CreateListDel):
     def get_permissions(self):
         if self.action == 'list':
 
-            return (ReadOnly(), )
+            return (IsAuthenticatedOrReadOnly(), )
 
         return super().get_permissions()
 
@@ -167,7 +169,7 @@ class GenreViewSet(CreateListDel):
             return (IsAdminOrSuperUser(),)
         if self.action == 'list':
 
-            return (ReadOnly(), )
+            return (IsAuthenticatedOrReadOnly(), )
 
         return super().get_permissions()
 
@@ -196,7 +198,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
         if self.action == 'list' or self.action == 'retrieve':
 
-            return (ReadOnly(), )
+            return (IsAuthenticatedOrReadOnly(), )
 
         return super().get_permissions()
 
