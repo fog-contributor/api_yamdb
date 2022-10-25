@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
@@ -74,6 +75,13 @@ class TitlePostPatchSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Title
+
+    def validate_year(self, value):
+        if not value <= timezone.now().year:
+            raise serializers.ValidationError(
+                'Год выпуска произведения еще не наступил'
+            )
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
