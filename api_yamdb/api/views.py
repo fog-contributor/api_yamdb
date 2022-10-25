@@ -51,7 +51,7 @@ class SignUpView(APIView):
                          f'Для получения API-токена '
                          f'используйте следующий confirmation_code: {otp}',
                          'from@admin.com',
-                         [email])
+                         (email,))
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
