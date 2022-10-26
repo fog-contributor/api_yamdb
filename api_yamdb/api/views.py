@@ -5,7 +5,6 @@ from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import (IsAuthenticated,
@@ -47,21 +46,18 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=(IsAuthenticated,))
     def me(self, request):
-        me = get_object_or_404(User, username=request.user)
+        me = request.user
         serializer = UserSerializer(me)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @me.mapping.patch
     def patch_me(self, request):
-        me = get_object_or_404(User, username=request.user)
+        me = request.user
         serializer = CurrentUserSerializer(me, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SignUpView(APIView):

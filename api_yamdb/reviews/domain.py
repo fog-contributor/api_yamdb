@@ -7,3 +7,4 @@ ROLE = (
 ADMIN = 'admin'
 MODERATOR = 'moderator'
 USER_ROLE = 'user'
+
