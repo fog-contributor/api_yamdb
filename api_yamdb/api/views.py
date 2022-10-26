@@ -55,12 +55,9 @@ class UserViewSet(viewsets.ModelViewSet):
     def patch_me(self, request):
         me = request.user
         serializer = CurrentUserSerializer(me, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SignUpView(APIView):
