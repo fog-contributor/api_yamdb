@@ -74,7 +74,7 @@ class TitlePostPatchSerializer(serializers.ModelSerializer):
         model = Title
 
     def validate_year(self, value):
-        if not value <= timezone.now().year:
+        if value > timezone.now().year:
             raise serializers.ValidationError(
                 'Год выпуска произведения еще не наступил'
             )
