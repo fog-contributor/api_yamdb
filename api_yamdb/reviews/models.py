@@ -3,12 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg
 
-
-ROLE = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор')
-)
+from reviews.domain import ADMIN, MODERATOR, ROLE
 
 
 class User(AbstractUser):
@@ -26,6 +21,16 @@ class User(AbstractUser):
             'Администратор, модератор или пользователь. По умолчанию user.'
         ),
         blank=True)
+
+    @property
+    def is_admin(self):
+        if self.role == ADMIN:
+            return True
+
+    @property
+    def is_moderator(self):
+        if self.role == MODERATOR:
+            return True
 
 
 class Category(models.Model):
