@@ -46,14 +46,14 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=(IsAuthenticated,))
     def me(self, request):
-        me = get_object_or_404(User, username=request.user)
+        me = request.user
         serializer = UserSerializer(me)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @me.mapping.patch
     def patch_me(self, request):
-        me = get_object_or_404(User, username=request.user)
+        me = request.user
         serializer = CurrentUserSerializer(me, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
