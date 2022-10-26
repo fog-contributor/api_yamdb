@@ -4,5 +4,6 @@ ROLE = (
     ('admin', 'Администратор')
 )
 
-ADMIN = ROLE[2][0]
-MODERATOR = ROLE[1][0]
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+USER_ROLE = 'user'
