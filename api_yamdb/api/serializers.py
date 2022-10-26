@@ -104,7 +104,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             if Review.objects.filter(
                 title=title, author=request.user
             ).exists():
-                raise ValidationError('Only one review is allowed')
+                raise ValidationError('Можно оставить только один отзыв.')
         return data
 
 
