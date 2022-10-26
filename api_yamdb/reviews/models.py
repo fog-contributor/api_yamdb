@@ -7,12 +7,11 @@ from reviews.domain import ADMIN, MODERATOR, ROLE
 
 
 class User(AbstractUser):
-    """
-    Расширенная пользовательская модель.
-    """
+    """Расширенная пользовательская модель."""
+
     email = models.EmailField(unique=True)
-    bio = models.TextField('Биография', blank=True, null=True)
-    otp = models.CharField(null=True, blank=True, max_length=128)
+    bio = models.TextField('Биография', blank=True)
+    otp = models.CharField(blank=True, max_length=128)
     role = models.CharField(
         max_length=10,
         choices=ROLE,
@@ -34,9 +33,8 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    """
-    Категории (типы) произведений.
-    """
+    """Категории (типы) произведений."""
+
     name = models.CharField('Название', max_length=256)
     slug = models.SlugField('Slug', max_length=50, unique=True)
 
@@ -49,9 +47,8 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-    """
-    Добавление жанра.
-    """
+    """Добавление жанра."""
+
     name = models.CharField('Название жанра', max_length=128)
     slug = models.SlugField('Slug', max_length=50, unique=True)
 
@@ -64,10 +61,8 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    """
-    Произведения, к которым пишут отзывы (определённый фильм, книга или
-    песенка).
-    """
+    """Произведения, к которым пишут отзывы (фильм, книга или песенка)."""
+
     name = models.CharField('Название', max_length=128)
     year = models.PositiveIntegerField('Год выпуска')
     genre = models.ManyToManyField(
@@ -100,6 +95,7 @@ class Title(models.Model):
 
 class GenreTitle(models.Model):
     """Вспомогательная модель для связи m2m."""
+
     title = models.ForeignKey(
         'Title',
         on_delete=models.SET_NULL,
@@ -119,6 +115,7 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     """Обзоры произведений."""
+
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
@@ -145,6 +142,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Комментарии к обзорам."""
+
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments'
     )
