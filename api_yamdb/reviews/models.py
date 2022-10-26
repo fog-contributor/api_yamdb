@@ -3,33 +3,46 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg
 
-from reviews.domain import ADMIN, MODERATOR, ROLE
+from reviews.domain import ADMIN, MODERATOR, ROLE, USER_ROLE
 
 
 class User(AbstractUser):
-    """Расширенная пользовательская модель."""
-
-    email = models.EmailField(unique=True)
+    """
+    Расширенная пользовательская модель.
+    """
+    email = models.EmailField('Email', unique=True)
     bio = models.TextField('Биография', blank=True)
-    otp = models.CharField(blank=True, max_length=128)
+    otp = models.CharField(
+        'Одноразовый пароль',
+        blank=True,
+        max_length=128
+    )
     role = models.CharField(
+        'Роль пользователя',
         max_length=10,
         choices=ROLE,
-        default='user',
+        default=USER_ROLE,
         help_text=(
             'Администратор, модератор или пользователь. По умолчанию user.'
         ),
-        blank=True)
+        blank=True
+    )
 
-    @property
+    @ property
     def is_admin(self):
         if self.role == ADMIN:
             return True
+        return False
 
-    @property
+    @ property
     def is_moderator(self):
         if self.role == MODERATOR:
             return True
+        return False
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 class Category(models.Model):
@@ -82,7 +95,7 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-    @property  # cached_property работает только с python >3.8. Нам не походит
+    @ property
     def average_rating(self):
         if hasattr(self, '_average_rating'):
             return self._average_rating
@@ -100,6 +113,7 @@ class GenreTitle(models.Model):
         'Title',
         on_delete=models.SET_NULL,
         null=True,
+        verbose_name='Категория'
     )
     genre = models.ForeignKey(
         'Genre',
@@ -117,16 +131,26 @@ class Review(models.Model):
     """Обзоры произведений."""
 
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews'
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Произведение'
     )
-    text = models.TextField()
+    text = models.TextField('Отзыв')
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews'
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Автор'
     )
     score = models.PositiveSmallIntegerField(
+        'Рейтинг',
         validators=[MinValueValidator(1), MaxValueValidator(10)],
     )
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(
+        'Дата и время публикации',
+        auto_now_add=True
+    )
 
     def __str__(self):
         return self.text
@@ -144,13 +168,22 @@ class Comment(models.Model):
     """Комментарии к обзорам."""
 
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments'
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='ID произведения'
     )
-    text = models.TextField()
+    text = models.TextField('Комментарий')
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='ID автора'
     )
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(
+        'Дата и время публикации',
+        auto_now_add=True
+    )
 
     def __str__(self):
         return self.text
