@@ -1,9 +1,9 @@
-ROLE = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор')
-)
-
 ADMIN = 'admin'
 MODERATOR = 'moderator'
-USER_ROLE = 'user'
+USER = 'user'
+
+ROLE = (
+    (USER, 'Пользователь'),
+    (MODERATOR, 'Модератор'),
+    (ADMIN, 'Администратор')
+)
