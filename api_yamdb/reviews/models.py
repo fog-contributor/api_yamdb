@@ -10,6 +10,7 @@ class User(AbstractUser):
     """
     Расширенная пользовательская модель.
     """
+
     email = models.EmailField('Email', unique=True)
     bio = models.TextField('Биография', blank=True)
     otp = models.CharField(
@@ -30,15 +31,13 @@ class User(AbstractUser):
 
     @ property
     def is_admin(self):
-        if self.role == ADMIN:
-            return True
-        return False
+
+        return bool(self.role == ADMIN)
 
     @ property
     def is_moderator(self):
-        if self.role == MODERATOR:
-            return True
-        return False
+
+        return bool(self.role == MODERATOR)
 
     class Meta:
         verbose_name = 'Пользователь'
