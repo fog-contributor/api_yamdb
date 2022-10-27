@@ -22,4 +22,3 @@ class IsModeratorOrIsOwner(IsAuthenticatedOrReadOnly):
                 or (request.user.is_superuser)
                 or (obj.author == request.user)
                 or (request.method in SAFE_METHODS))
-# git add . && git commit -m "Add patch method to SignUpView."   

@@ -7,9 +7,7 @@ from reviews.domain import ADMIN, MODERATOR, ROLE, USER
 
 
 class User(AbstractUser):
-    """
-    Расширенная пользовательская модель.
-    """
+    """Расширенная пользовательская модель."""
 
     email = models.EmailField('Email', unique=True)
     bio = models.TextField('Биография', blank=True)
