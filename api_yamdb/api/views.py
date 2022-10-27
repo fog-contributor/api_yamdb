@@ -76,38 +76,33 @@ class SignUpView(APIView):
                          'from@admin.com',
                          (email,))
 
-    def post(self, request):
+    def post(self, request):  # пользователь - новый.
         serializer = SignUpSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        if serializer.is_valid():  # пользователь - новый.
-            otp = pyotp.random_base32()
-            email = serializer.validated_data['email']
-            serializer.validated_data['otp'] = otp
-            serializer.save()
-            self.send_mail(otp, email)
-        else:
-            try:  # пользователь - существует
-                if (
-                    serializer.errors.get('username')[0].code == 'unique'
-                    and serializer.errors.get('email')[0].code == 'unique'
-                ):
-                    username = serializer.data['username']
-                    email = serializer.data['email']
-                    _existence_user = User.objects.get(username=username,
-                                                       email=email)
-                    otp = pyotp.random_base32()
-                    _existence_user.otp = otp
-                    _existence_user.save()
-                    self.send_mail(otp, email)
-                else:
-                    return Response(serializer.errors,
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-            except TypeError:  # иная ошибка валидации
-                return Response(serializer.errors,
-                                status=status.HTTP_400_BAD_REQUEST)
-
+        serializer.is_valid(raise_exception=True)  # пользователь - новый.
+        otp = pyotp.random_base32()
+        email = serializer.validated_data['email']
+        serializer.validated_data['otp'] = otp
+        serializer.save()
+        self.send_mail(otp, email)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):  # пользователь - существует
+        serializer = SignUpSerializer(data=request.data)
+
+        username_errors = serializer.errors.get('username')[0].code
+        email_errors = serializer.errors.get('email')[0].code
+        if not (username_errors == 'unique' and email_errors == 'unique'):
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        username = serializer.data['username']
+        email = serializer.data['email']
+        _existence_user = User.objects.get(
+            username=username, email=email)
+        otp = pyotp.random_base32()
+        _existence_user.otp = otp
+        _existence_user.save()
+        self.send_mail(otp, email)
 
 
 class LoginUserView(APIView):
