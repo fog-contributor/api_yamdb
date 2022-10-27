@@ -94,7 +94,7 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-    @ property
+    @property  # cached_property работает только с python >3.8. Нам не походит
     def average_rating(self):
         if hasattr(self, '_average_rating'):
             return self._average_rating

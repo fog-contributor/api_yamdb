@@ -78,6 +78,7 @@ class SignUpView(APIView):
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
+        # serializer.is_valid(raise_exception=True)
         if serializer.is_valid():  # пользователь - новый.
             otp = pyotp.random_base32()
             email = serializer.validated_data['email']
