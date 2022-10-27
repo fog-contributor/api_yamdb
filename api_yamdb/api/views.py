@@ -32,7 +32,6 @@ from .serializers import (
     TitleSerializer,
     TitlePostPatchSerializer,
     ReviewSerializer,
-    CurrentUserSerializer
 )
 
 
@@ -55,9 +54,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @me.mapping.patch
     def patch_me(self, request):
         me = request.user
-        serializer = CurrentUserSerializer(me, data=request.data, partial=True)
+        serializer = UserSerializer(me, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=me.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):
