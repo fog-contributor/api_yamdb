@@ -79,12 +79,6 @@ class SignUpView(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():  # пользователь - новый.
-            if serializer.validated_data['username'] == 'me':
-
-                return Response(
-                    {'error': 'Нельзя создать пользователя "me" !'},
-                    status=status.HTTP_400_BAD_REQUEST)
-
             otp = pyotp.random_base32()
             email = serializer.validated_data['email']
             serializer.validated_data['otp'] = otp
@@ -105,11 +99,10 @@ class SignUpView(APIView):
                     _existence_user.save()
                     self.send_mail(otp, email)
                 else:
-
                     return Response(serializer.errors,
                                     status=status.HTTP_400_BAD_REQUEST)
-            except TypeError:  # иная ошибка валидации
 
+            except TypeError:  # иная ошибка валидации
                 return Response(serializer.errors,
                                 status=status.HTTP_400_BAD_REQUEST)
 

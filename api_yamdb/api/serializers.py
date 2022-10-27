@@ -20,6 +20,13 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
         model = User
 
+    def validate_username(self, username):
+        if username == 'me':
+            raise serializers.ValidationError(
+                'Нельзя создать пользователя "me" !'
+            )
+        return username
+
 
 class LoginUserSerializer(serializers.Serializer):
     username = serializers.CharField()
