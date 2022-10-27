@@ -59,9 +59,11 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save(role=me.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request):
-
-        raise MethodNotAllowed('put')
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.get('partial', False)
+        if not partial:
+            raise Response(exception=MethodNotAllowed(method='PUT'))
+        return super().update(request, *args, **kwargs)
 
 
 class SignUpView(APIView):
