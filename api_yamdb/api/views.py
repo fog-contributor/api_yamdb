@@ -81,8 +81,7 @@ class SignUpView(APIView):
         serializer.is_valid(raise_exception=True)  # пользователь - новый.
         otp = pyotp.random_base32()
         email = serializer.validated_data['email']
-        serializer.validated_data['otp'] = otp
-        serializer.save()
+        serializer.save(otp=otp)
         self.send_mail(otp, email)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
