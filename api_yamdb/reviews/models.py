@@ -27,6 +27,10 @@ class User(AbstractUser):
         blank=True
     )
 
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
     @property
     def is_admin(self):
 
@@ -38,10 +42,6 @@ class User(AbstractUser):
 
         # Суперпользователь учтен в пермишенах через оператор AND
         return bool(self.role == MODERATOR)
-
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
 
 
 class Category(models.Model):
