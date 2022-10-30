@@ -34,14 +34,14 @@ class User(AbstractUser):
     @property
     def is_admin(self):
 
-        # Суперпользователь учтен в пермишенах через оператор AND
-        return bool(self.role == ADMIN)
+        return bool(self.role == ADMIN
+                    or self.is_superuser)
 
     @property
     def is_moderator(self):
 
-        # Суперпользователь учтен в пермишенах через оператор AND
-        return bool(self.role == MODERATOR)
+        return bool(self.role == MODERATOR
+                    or self.is_superuser)
 
 
 class Category(models.Model):

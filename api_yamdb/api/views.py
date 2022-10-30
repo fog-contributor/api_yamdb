@@ -57,12 +57,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(me, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(role=me.role)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.get('partial', False)
         if not partial:
             raise Response(exception=MethodNotAllowed(method='PUT'))
+
         return super().update(request, *args, **kwargs)
 
 
@@ -78,19 +80,20 @@ class SignUpView(APIView):
 
     def post(self, request):  # пользователь - новый.
         serializer = SignUpSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)  # пользователь - новый.
+        serializer.is_valid(raise_exception=True)
         otp = pyotp.random_base32()
         email = serializer.validated_data['email']
         serializer.save(otp=otp)
         self.send_mail(otp, email)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):  # пользователь - существует
         serializer = SignUpSerializer(data=request.data)
-
         username_errors = serializer.errors.get('username')[0].code
         email_errors = serializer.errors.get('email')[0].code
         if not (username_errors == 'unique' and email_errors == 'unique'):
+
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -224,6 +227,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, pk=review_id)
+
         return review.comments.all()
 
     def perform_create(self, serializer):
