@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.db.models import Avg
+from django.db import IntegrityError
 from django.contrib.sites.shortcuts import get_current_site
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -80,33 +81,26 @@ class SignUpView(APIView):
                          f'from@{current_site.domain}',
                          (email,))
 
-    def post(self, request):  # пользователь - новый.
+    def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        otp = pyotp.random_base32()
+        username = serializer.validated_data['username']
         email = serializer.validated_data['email']
-        serializer.save(otp=otp)
-        self.send_mail(request, otp, email)
+        try:
+            _existence_user, created = User.objects.get_or_create(
+                username=username, email=email)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        except IntegrityError:
 
-    def patch(self, request):  # пользователь - существует
-        serializer = SignUpSerializer(data=request.data)
-        username_errors = serializer.errors.get('username')[0].code
-        email_errors = serializer.errors.get('email')[0].code
-        if not (username_errors == 'unique' and email_errors == 'unique'):
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        username = serializer.data['username']
-        email = serializer.data['email']
-        _existence_user = User.objects.get(
-            username=username, email=email)
         otp = pyotp.random_base32()
         _existence_user.otp = otp
         _existence_user.save()
         self.send_mail(request, otp, email)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LoginUserView(APIView):
