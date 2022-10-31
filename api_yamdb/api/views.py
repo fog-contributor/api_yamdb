@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+from rest_framework.serializers import ValidationError
 from rest_framework import status
 from rest_framework import mixins, viewsets
 from rest_framework import filters
@@ -112,7 +113,8 @@ class LoginUserView(APIView):
         user = get_object_or_404(User, username=data['username'])
         if user.otp != data['confirmation_code']:
             return Response(
-                {'detail': 'Неверное имя пользователя или пароль.'},
+                exception=ValidationError(
+                    'Неверное имя пользователя или пароль.'),
                 status=status.HTTP_400_BAD_REQUEST
             )
 
