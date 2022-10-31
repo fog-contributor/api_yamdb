@@ -17,7 +17,7 @@ from rest_framework import status
 from rest_framework import mixins, viewsets
 from rest_framework import filters
 
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 import pyotp
 
@@ -118,8 +118,8 @@ class LoginUserView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        refresh = RefreshToken.for_user(user)
-        user.otp = None  # Удаляем ОТР после выдачи токена
+        refresh = AccessToken.for_user(user)
+        user.otp = ''  # Удаляем ОТР после выдачи токена
         user.save()
         return Response({'token': str(refresh.access_token), },
                         status=status.HTTP_200_OK)
