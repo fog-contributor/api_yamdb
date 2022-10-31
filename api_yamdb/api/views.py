@@ -110,16 +110,17 @@ class LoginUserView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         user = get_object_or_404(User, username=data['username'])
-        if user.otp == data['confirmation_code']:
-            refresh = RefreshToken.for_user(user)
-            user.otp = None  # Удаляем ОТР после выдачи токена
-            user.save()
+        if user.otp != data['confirmation_code']:
+            return Response(
+                {'detail': 'Неверное имя пользователя или пароль.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-            return Response({'token': str(refresh.access_token), },
-                            status=status.HTTP_200_OK)
-
-        return Response({'detail': 'Incorrect username or password', },
-                        status=status.HTTP_400_BAD_REQUEST)
+        refresh = RefreshToken.for_user(user)
+        user.otp = None  # Удаляем ОТР после выдачи токена
+        user.save()
+        return Response({'token': str(refresh.access_token), },
+                        status=status.HTTP_200_OK)
 
 
 class CreateListDel(
