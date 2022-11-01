@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.db import IntegrityError
-from django.contrib.sites.shortcuts import get_current_site
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -22,6 +21,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 import pyotp
 
 from api.filters import TitleFilter
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from reviews.models import User, Category, Genre, Title, Review
 from .permissions import (IsAdminOrSuperUser,
                           IsModeratorOrIsOwner)
@@ -73,13 +73,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class SignUpView(APIView):
 
-    def send_mail(self, request, otp, email):
+    def send_mail(self, otp, email):
 
-        current_site = get_current_site(request)
         return send_mail('Токен OTP',
                          f'Для получения API-токена '
                          f'используйте следующий confirmation_code: {otp}',
-                         f'from@{current_site.domain}',
+                         DEFAULT_FROM_EMAIL,
                          (email,))
 
     def post(self, request):
@@ -99,7 +98,7 @@ class SignUpView(APIView):
         otp = pyotp.random_base32()
         _existence_user.otp = otp
         _existence_user.save()
-        self.send_mail(request, otp, email)
+        self.send_mail(otp, email)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
