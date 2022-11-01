@@ -16,10 +16,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 
-class SignUpSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('username', 'email')
-        model = User
+class SignUpSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
 
     def validate_username(self, username):
         if username == 'me':

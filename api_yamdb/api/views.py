@@ -83,17 +83,17 @@ class SignUpView(APIView):
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
-        serializer.is_valid()
-        username = serializer.data['username']
-        email = serializer.data['email']
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        email = serializer.validated_data['email']
         try:
             _existence_user, created = User.objects.get_or_create(
                 username=username, email=email)
-
         except IntegrityError:
 
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+
         otp = pyotp.random_base32()
         _existence_user.otp = otp
         _existence_user.save()
