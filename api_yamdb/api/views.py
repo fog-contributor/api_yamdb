@@ -84,8 +84,8 @@ class SignUpView(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid()
-        username = serializer.validated_data['username']
-        email = serializer.validated_data['email']
+        username = serializer.data['username']
+        email = serializer.data['email']
         try:
             _existence_user, created = User.objects.get_or_create(
                 username=username, email=email)
