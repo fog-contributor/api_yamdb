@@ -110,12 +110,7 @@ class LoginUserView(APIView):
         data = serializer.validated_data
         user = get_object_or_404(User, username=data['username'])
         if user.otp != data['confirmation_code']:
-            return Response(
-                exception=ValidationError(
-                    'Неверное имя пользователя или пароль.'),
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+            raise ValidationError('Неверное имя пользователя или пароль.')
         refresh = AccessToken.for_user(user)
         user.otp = ''  # Удаляем ОТР после выдачи токена
         user.save()
