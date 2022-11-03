@@ -114,8 +114,7 @@ class LoginUserView(APIView):
         refresh = AccessToken.for_user(user)
         user.otp = ''  # Удаляем ОТР после выдачи токена
         user.save()
-        return Response({'token': str(refresh.access_token), },
-                        status=status.HTTP_200_OK)
+        return Response({'token': str(refresh)}, status=status.HTTP_200_OK)
 
 
 class CreateListDel(
