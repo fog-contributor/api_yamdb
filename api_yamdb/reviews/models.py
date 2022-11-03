@@ -1,8 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Avg
-from django.utils.functional import cached_property
 
 from reviews.domain import ADMIN, MODERATOR, ROLE, USER
 
@@ -91,12 +89,6 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Slug категории'
     )
-
-    @cached_property
-    def average_rating(self):
-        if hasattr(self, '_average_rating'):
-            return self._average_rating
-        return self.reviews.aggregate(Avg('score'))
 
     class Meta:
         verbose_name = 'Произведение'

@@ -161,7 +161,10 @@ class GenreViewSet(CreateListDel):
 class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrSuperUser,)
     queryset = (
-        Title.objects.all().annotate(_average_rating=Avg('reviews__score')))
+        Title.objects.all().annotate(
+            _average_rating=Avg('reviews__score')
+        )
+    )
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
