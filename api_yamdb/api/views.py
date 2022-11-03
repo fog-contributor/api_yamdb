@@ -21,7 +21,6 @@ from rest_framework_simplejwt.tokens import AccessToken
 import pyotp
 
 from api.filters import TitleFilter
-# from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from django.conf import settings
 from reviews.models import User, Category, Genre, Title, Review
 from .permissions import (IsAdminOrSuperUser,
