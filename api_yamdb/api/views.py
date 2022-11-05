@@ -24,7 +24,8 @@ from api.filters import TitleFilter
 from django.conf import settings
 from reviews.models import User, Category, Genre, Title, Review
 from .permissions import (IsAdminOrSuperUser,
-                          IsModeratorOrIsOwner)
+                          IsModeratorOrIsOwner,
+                          AdminOrReadOnly)
 from .serializers import (
     UserSerializer,
     SignUpSerializer,
@@ -90,10 +91,8 @@ class SignUpView(APIView):
             _existence_user, created = User.objects.get_or_create(
                 username=username, email=email)
         except IntegrityError:
-
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-
+            raise ValidationError(
+                'Такой пользователь или email уже существует!')
         otp = pyotp.random_base32()
         _existence_user.otp = otp
         _existence_user.save()
@@ -129,32 +128,15 @@ class CreateListDel(
 
 
 class CategoryViewSet(CreateListDel):
-    permission_classes = (IsAdminOrSuperUser,)
+    permission_classes = (AdminOrReadOnly,)
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get_permissions(self):
-        if self.action == 'list':
-
-            return (IsAuthenticatedOrReadOnly(), )
-
-        return super().get_permissions()
-
 
 class GenreViewSet(CreateListDel):
-    permission_classes = (IsAdminOrSuperUser,)
+    permission_classes = (AdminOrReadOnly,)
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-
-    def get_permissions(self):
-        if self.action == 'create' or self.action == 'destroy':
-
-            return (IsAdminOrSuperUser(),)
-        if self.action == 'list':
-
-            return (IsAuthenticatedOrReadOnly(), )
-
-        return super().get_permissions()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
