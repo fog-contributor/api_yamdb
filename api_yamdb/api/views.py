@@ -140,31 +140,24 @@ class GenreViewSet(CreateListDel):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAdminOrSuperUser,)
+    permission_classes = (AdminOrReadOnly,)
     queryset = (
         Title.objects.all().annotate(
             _average_rating=Avg('reviews__score')
         )
     )
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.action == 'create' or self.action == 'partial_update':
+        if self.action in {'create', 'partial_update'}:
 
             return TitlePostPatchSerializer
 
         return TitleSerializer
 
     def get_permissions(self):
-        if (self.action == 'create'
-           or self.action == 'destroy'
-           or self.action == 'partial_update'):
-
-            return (IsAdminOrSuperUser(),)
-
-        if self.action == 'list' or self.action == 'retrieve':
+        if self.action in {'list', 'retrieve'}:
 
             return (IsAuthenticatedOrReadOnly(), )
 
