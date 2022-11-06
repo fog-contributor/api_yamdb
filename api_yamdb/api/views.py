@@ -161,6 +161,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
             return (IsAuthenticatedOrReadOnly(), )
 
+        # Переписал логику функции, теперь этот метод нужен.
         return super().get_permissions()
 
 
