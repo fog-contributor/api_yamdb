@@ -148,6 +148,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
         if self.action in {'create', 'partial_update'}:
@@ -161,7 +162,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
             return (IsAuthenticatedOrReadOnly(), )
 
-        # Переписал логику функции, теперь этот метод нужен.
         return super().get_permissions()
 
 
