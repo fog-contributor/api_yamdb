@@ -207,5 +207,5 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_id')
         title_id = self.kwargs.get('title_id')
-        review = get_object_or_404(Review, pk=review_id, title=title_id) 
+        review = get_object_or_404(Review, pk=review_id, title=title_id)
         serializer.save(author=self.request.user, review=review)
