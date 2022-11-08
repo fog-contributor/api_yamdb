@@ -148,6 +148,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    # Явно указал какие методы доступны. Исходя их ТЗ
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
@@ -168,6 +169,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsModeratorOrIsOwner,)
+    # Явно указал какие методы доступны. Исходя их ТЗ
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_context(self):
         context = super(ReviewViewSet, self).get_serializer_context()
@@ -191,6 +194,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsModeratorOrIsOwner,)
+    # Явно указал какие методы доступны. Исходя их ТЗ
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
